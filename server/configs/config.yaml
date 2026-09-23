@@ -1,0 +1,35 @@
+# CaoYou Mail config
+server:
+  addr: ":38083"
+  secret: "change-me-to-a-random-string"
+
+# domain: localhost for dev; your real domain for prod (needs MX/SPF/DKIM)
+domain: "localhost"
+
+# sqlite | mysql | postgres
+db:
+  driver: "sqlite"
+  dsn: "caoyou.db"
+  # mysql dsn:    "user:pass@tcp(127.0.0.1:3306)/caoyou?charset=utf8mb4&parseTime=True&loc=Local"
+  # postgres dsn: "host=127.0.0.1 port=5432 user=postgres password=xxx dbname=caoyou sslmode=disable"
+
+# inbound SMTP (receives mail for @domain)
+smtp_in:
+  enabled: true
+  addr: ":25"
+  max_mb: 32
+
+# outbound mail
+# 注意：以下 mail 段仅为首次启动的初始值。
+# 运行后在 网页→系统管理→发信设置 中修改域名/发信模式/relay/DKIM，立即生效。
+mail:
+  mode: "relay"  # relay | direct (direct = MX lookup, needs outbound port 25)
+  relay:
+    host: "smtp.qq.com"
+    port: 465
+    tls: "ssl"
+    username: "yourname@qq.com"
+    password: ""
+  helo_domain: ""
+fetch_interval_sec: 300
+aes_key: "change-me-32-bytes-random"
