@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: server/go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Build frontend
+        run: npm ci && npm run build
+        working-directory: web
+
+      - name: Build and package
+        run: |
+          set -e
+          VERSION=${GITHUB_REF_NAME}
+          # 平台列表：goos/goarch/二进制后缀/压缩格式
+          TARGETS="
+            linux/amd64//tar.gz
+            linux/arm64//tar.gz
+            darwin/amd64//tar.gz
+            darwin/arm64//tar.gz
+            windows/amd64/.exe/zip
+          "
+          for t in $TARGETS; do
+            IFS='/' read -r GOOS GOARCH EXT FMT <<< "$t"
+            NAME=caoyou-${VERSION}-${GOOS}-${GOARCH}
+            mkdir -p dist/${NAME}/web dist/${NAME}/configs
+            cp -r web/dist dist/${NAME}/web/dist
+            cp server/configs/config.yaml dist/${NAME}/configs/
+            (cd server && CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} \
+              go build -ldflags="-s -w" -o ../dist/${NAME}/caoyou${EXT} ./cmd/caoyou)
+            (cd dist && { [ "${FMT}" = "zip" ] && zip -qr ${NAME}.zip ${NAME} || tar czf ${NAME}.tar.gz ${NAME}; })
+          done
+
+      - name: Upload release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/caoyou-*
+          generate_release_notes: true
