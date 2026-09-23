@@ -1,5 +1,7 @@
 # 草鼬 CaoYou Mail
 
+> 仓库：https://github.com/xxff-dot/caoyou
+
 Go + Vue3 自建邮件服务：**收信（自建SMTP）、发信（relay / MX直投）、用户注册即开通邮箱、管理员后台**，网页全功能管理。
 
 ```
